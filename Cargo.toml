@@ -1,0 +1,10 @@
+[package]
+name = "manfred"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rand = "0.8.5"
+raylib = "3.7.0"
+serde = { version = "1.0.193", features = ["derive"] }
+serde_yaml = "0.9.29"
