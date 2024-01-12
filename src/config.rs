@@ -18,8 +18,8 @@ pub struct Config {
 
 #[derive(Deserialize)]
 pub struct Sprite {
-    pub width: i32,
-    pub height: i32,
+    pub width: u32,
+    pub height: u32,
 }
 
 #[derive(Deserialize)]

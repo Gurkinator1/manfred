@@ -1,5 +1,4 @@
 use config::read_config;
-use rand::Rng;
 use raylib::prelude::*;
 use state_machine::StateMachine;
 
@@ -10,7 +9,7 @@ mod tests;
 
 fn main() {
     //load config
-    let mut cfg = read_config("./config.yaml");
+    let cfg = read_config("./config.yaml");
 
     //initialize window
     let (mut rl, thread) = raylib::init()

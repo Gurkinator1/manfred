@@ -1,6 +1,6 @@
-texture_path: "./cat.png" # relative or absolute path to texture
+texture_path: ./cat.png # relative or absolute path to texture
 scale: 4.0 # scaling applied to the texture
-state: "idle" # beginning state
+state: idle # beginning state
 fps: 30 #set fps of the update loop. default: 30
 
 # sprite dimensions
@@ -22,11 +22,11 @@ frames:
 # Animation definition. Each animation is composed out of frames.
 # TODO: flipping, movement
 animations:
-    walking: { frames: ["walk1", "walk2", "walk3", "walk4"], sleep: 1000 } #specify the amount of time slept between frames
-    idling: { frames: ["idle1", "idle2", "idle1", "idle3"], sleep: 2000 }
+    walking: { frames: [walk1, walk2, walk3, walk4], sleep: 1000 } #specify the amount of time slept between frames
+    idling: { frames: [idle1, idle2, idle1, idle3], sleep: 2000 }
 
 # States for the state machine. Each state has a set of next states.
 states:
-    idle: { next: ["idle", "walk_left", "walk_right"], animation: "idling" }
-    walk_left: { next: ["walk_left", "idle"], animation: "walking" }
-    walk_right: { next: ["walk_right", "idle"], animation: "walking" }
+    idle: { next: [idle, walk_left, walk_right], animation: idling }
+    walk_left: { next: [walk_left, idle], animation: walking }
+    walk_right: { next: [walk_right, idle], animation: walking }

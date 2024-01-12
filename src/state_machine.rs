@@ -1,8 +1,9 @@
 use rand::{rngs::ThreadRng, Rng};
 use raylib::prelude::Rectangle;
 use std::{
+    collections::HashMap,
     ops::Add,
-    time::{Duration, SystemTime}, collections::HashMap,
+    time::{Duration, SystemTime},
 };
 
 use crate::config::Config;
@@ -27,30 +28,49 @@ impl StateMachine {
     pub fn new(cfg: &Config) -> StateMachine {
         let mut animations = Vec::with_capacity(cfg.animations.len());
         let mut frames = Vec::new();
-        
+
         //push rectangles to vec & insert new positions into frame table
         let mut frame_table: HashMap<String, usize> = HashMap::new();
         for (i, (name, frame)) in cfg.frames.iter().enumerate() {
             frames.push(Rectangle {
-                x: frame.x as f32,
-                y: frame.y as f32,
+                x: (frame.x * cfg.sprite.width) as f32,
+                y: (frame.y * cfg.sprite.height) as f32,
                 width: cfg.sprite.width as f32,
-                height: cfg.sprite.height as f32
+                height: cfg.sprite.height as f32,
             });
             frame_table.insert(name.clone(), i);
         }
-        
+
         let mut animation_table: HashMap<String, usize> = HashMap::new();
+        let mut i = 0;
+        let mut resolve = |state_name: &String| {
+            let mut frames: Vec<usize> = Vec::new();
+            if let Some(state) = cfg.states.get(state_name) {
+                for next in &cfg
+                    .animations
+                    .get(&state.animation)
+                    .unwrap_or_else(|| {
+                        panic!("animation {} does not exist!", state.animation);
+                    })
+                    .frames
+                {
+                    frames.push(*frame_table.get(next).unwrap_or_else(|| {
+                        panic!("frame {next} does not exist!");
+                    }))
+                }
 
-        //todo: create animations recursively.
-        
-
-        animations.push(Animation {
-            frames: Vec::new(),
-            next_animations: Vec::new(),
-            sleep: 0,
-        });
-
+                animations.push(Animation {
+                    frames,
+                    next_animations: vec![0], //TODO
+                    sleep: 500, //TODO
+                });
+                animation_table.insert(state_name.clone(), i);
+                i += 1;
+            } else {
+                panic!("State {state_name} does not exist!");
+            }
+        };
+        resolve(&cfg.state);
 
         StateMachine {
             rng: rand::thread_rng(),
@@ -66,11 +86,10 @@ impl StateMachine {
         if self.next_frame.elapsed().is_ok() {
             self.current_frame += 1;
 
-            if self.current_frame > self.frames.len() {
+            if self.current_frame >= 4 {
                 self.current_frame = 0;
                 let animations = &self.animations[self.current_animation].next_animations;
                 self.current_animation = animations[self.rng.gen_range(0..animations.len())];
-                //TODO weights
             }
             self.next_frame = SystemTime::now().add(Duration::from_millis(
                 self.animations[self.current_animation].sleep,
