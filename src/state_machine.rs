@@ -46,14 +46,12 @@ impl StateMachine {
         let mut resolve = |state_name: &String| {
             let mut frames: Vec<usize> = Vec::new();
             if let Some(state) = cfg.states.get(state_name) {
-                for next in &cfg
-                    .animations
-                    .get(&state.animation)
-                    .unwrap_or_else(|| {
-                        panic!("animation {} does not exist!", state.animation);
-                    })
-                    .frames
-                {
+                let animation = &cfg.animations.get(&state.animation).unwrap_or_else(|| {
+                    panic!("animation {} does not exist!", state.animation);
+                });
+
+                //add frame indexes to animation
+                for next in &animation.frames {
                     frames.push(*frame_table.get(next).unwrap_or_else(|| {
                         panic!("frame {next} does not exist!");
                     }))
@@ -62,7 +60,7 @@ impl StateMachine {
                 animations.push(Animation {
                     frames,
                     next_animations: vec![0], //TODO
-                    sleep: 500, //TODO
+                    sleep: animation.sleep
                 });
                 animation_table.insert(state_name.clone(), i);
                 i += 1;

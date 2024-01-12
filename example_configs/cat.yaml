@@ -22,8 +22,8 @@ frames:
 # Animation definition. Each animation is composed out of frames.
 # TODO: flipping, movement
 animations:
-    walking: { frames: [walk1, walk2, walk3, walk4], sleep: 1000 } #specify the amount of time slept between frames
-    idling: { frames: [idle1, idle2, idle1, idle3], sleep: 2000 }
+    walking: { frames: [walk1, walk2, walk3, walk4], sleep: 500 } #specify the amount of time slept between frames
+    idling: { frames: [idle1, idle2, idle1, idle3], sleep: 500 }
 
 # States for the state machine. Each state has a set of next states.
 states:

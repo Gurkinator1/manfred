@@ -34,6 +34,12 @@ fn main() {
 
     //create state machine from config
     let mut sm = StateMachine::new(&cfg);
+    
+    //drop config for minimal memory usage.
+    let scale = cfg.scale;
+    let width = cfg.sprite.width;
+    let height = cfg.sprite.height;
+    drop(cfg);
 
     //render loop
     while !rl.window_should_close() {
@@ -48,8 +54,8 @@ fn main() {
             Rectangle::new(
                 0.,
                 0.,
-                cfg.sprite.width as f32 * cfg.scale,
-                cfg.sprite.height as f32 * cfg.scale,
+                width as f32 * scale,
+                height as f32 * scale,
             ),
             Vector2::new(0., 0.),
             0.,
