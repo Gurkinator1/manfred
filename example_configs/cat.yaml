@@ -1,5 +1,5 @@
 texture_path: ./cat.png # relative or absolute path to texture
-scale: 4.0 # scaling applied to the texture
+scale: 6.0 # scaling applied to the texture
 state: idle # beginning state
 fps: 30 #set fps of the update loop. default: 30
 
