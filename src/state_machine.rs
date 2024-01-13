@@ -8,6 +8,7 @@ use std::{
 
 use crate::config::Config;
 
+#[derive(Debug)]
 struct Animation {
     frames: Vec<usize>,
     sleep: u64,
@@ -29,7 +30,7 @@ impl StateMachine {
         let mut animations = Vec::with_capacity(cfg.animations.len());
         let mut frames = Vec::new();
 
-        //push rectangles to vec & insert new positions into frame table
+        //generate source rectangles
         let mut frame_table: HashMap<String, usize> = HashMap::new();
         for (i, (name, frame)) in cfg.frames.iter().enumerate() {
             frames.push(Rectangle {
@@ -41,34 +42,72 @@ impl StateMachine {
             frame_table.insert(name.clone(), i);
         }
 
+        //generate animations
         let mut animation_table: HashMap<String, usize> = HashMap::new();
         let mut i = 0;
-        let mut resolve = |state_name: &String| {
-            let mut frames: Vec<usize> = Vec::new();
+        fn resolve(
+            state_name: &String,
+            cfg: &Config,
+            animations: &mut Vec<Animation>,
+            frame_table: &HashMap<String, usize>,
+            animation_table: &mut HashMap<String, usize>,
+            i: &mut usize,
+        ) -> usize {
+            //check if state has already been visited.
+            println!("{state_name}");
+            if let Some(a) = animation_table.get(state_name) {
+                return *a;
+            }
+
             if let Some(state) = cfg.states.get(state_name) {
                 let animation = &cfg.animations.get(&state.animation).unwrap_or_else(|| {
                     panic!("animation {} does not exist!", state.animation);
                 });
 
+                //mark state as visited
+                animation_table.insert(state_name.clone(), *i);
+                *i += 1;
+
                 //add frame indexes to animation
+                let mut frames: Vec<usize> = Vec::new();
                 for next in &animation.frames {
                     frames.push(*frame_table.get(next).unwrap_or_else(|| {
                         panic!("frame {next} does not exist!");
                     }))
                 }
 
+                //recursively resolve upcoming states
+                let mut next_animations = Vec::new();
+                for next in &state.next {
+                    if next == state_name {
+                        next_animations.push(i.clone()-1);
+                    } else {
+                        next_animations.push(resolve(next, cfg, animations, frame_table, animation_table, i));
+                    }
+                }
+
+                //push animation to vec & table
                 animations.push(Animation {
                     frames,
-                    next_animations: vec![0], //TODO
-                    sleep: animation.sleep
+                    next_animations,
+                    sleep: animation.sleep,
                 });
-                animation_table.insert(state_name.clone(), i);
-                i += 1;
+                return i.clone()-1;
             } else {
                 panic!("State {state_name} does not exist!");
             }
-        };
-        resolve(&cfg.state);
+        }
+
+        resolve(
+            &cfg.state,
+            cfg,
+            &mut animations,
+            &frame_table,
+            &mut animation_table,
+            &mut i,
+        );
+
+        println!("{:?}", animations);
 
         StateMachine {
             rng: rand::thread_rng(),
