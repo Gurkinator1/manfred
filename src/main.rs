@@ -17,7 +17,7 @@ fn main() {
             (cfg.sprite.width as f32 * cfg.scale) as i32,
             (cfg.sprite.height as f32 * cfg.scale) as i32,
         )
-        .title("Hello, World")
+        .title("Manfred")
         .transparent()
         .undecorated()
         .build();
