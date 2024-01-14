@@ -34,10 +34,17 @@ pub struct Animation {
     pub sleep: u64
 }
 
+#[derive(Deserialize, Debug, Clone, Copy)]
+pub struct Vector {
+    pub x: i32,
+    pub y: i32
+}
+
 #[derive(Deserialize)]
 pub struct State {
     pub next: Vec<String>,
     pub animation: String,
+    pub movement: Option<Vector>,
     #[serde(default="bool::default")]
     pub flip_horizontally: bool,
     #[serde(default="bool::default")]

@@ -22,6 +22,10 @@ fn main() {
 
     rl.set_target_fps(cfg.fps.unwrap_or(30));
 
+    //set initial position
+    //TODO: config option
+    let mut pos = rl.get_window_position();
+
     //loading spritesheet
     let img = {
         match rl.load_texture(&thread, &cfg.texture_path.to_string_lossy()) {
@@ -32,7 +36,7 @@ fn main() {
 
     //create state machine from config
     let mut sm = StateMachine::new(&cfg);
-    
+
     //drop config for minimal memory usage.
     let scale = cfg.scale;
     let width = cfg.sprite.width;
@@ -41,23 +45,25 @@ fn main() {
 
     //render loop
     while !rl.window_should_close() {
-        let mut d = rl.begin_drawing(&thread);
-        d.clear_background(Color::BLANK);
-        sm.update();
-
-        //draw frame
-        d.draw_texture_pro(
-            &img,
-            sm.get_frame(),
-            Rectangle::new(
+        if let Some(update) = sm.update() {
+            //update position
+            if let Some(delta) = update.delta_position {
+                //TODO: ensure sprite stays on screen
+                pos += delta;
+                rl.set_window_position(pos.x as i32, pos.y as i32);
+            }
+            
+            //draw frame
+            let mut d = rl.begin_drawing(&thread);
+            d.clear_background(Color::BLANK);
+            d.draw_texture_pro(
+                &img,
+                update.frame,
+                Rectangle::new(0., 0., width as f32 * scale, height as f32 * scale),
+                Vector2::new(0., 0.),
                 0.,
-                0.,
-                width as f32 * scale,
-                height as f32 * scale,
-            ),
-            Vector2::new(0., 0.),
-            0.,
-            Color::WHITE,
-        );
+                Color::WHITE,
+            );
+        }
     }
 }

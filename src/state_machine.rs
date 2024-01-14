@@ -1,5 +1,5 @@
 use rand::{rngs::ThreadRng, Rng};
-use raylib::prelude::Rectangle;
+use raylib::{prelude::Rectangle, prelude::Vector2};
 use std::{
     collections::HashMap,
     ops::Add,
@@ -15,11 +15,12 @@ struct Animation {
     next_animations: Vec<usize>,
     flip_horizontally: bool,
     flip_vertically: bool,
+    movement: Option<Vector2>,
 }
 
 pub struct StateMachine {
     rng: ThreadRng,
-    current_animation: usize,
+    current_animation_id: usize,
     current_frame: usize,
     next_frame: SystemTime,
     frames: Vec<Rectangle>,
@@ -95,12 +96,22 @@ impl StateMachine {
             }
 
             //push animation to vec & table
+            let movement = if let Some(m) = state.movement {
+                Some(Vector2 {
+                    x: m.x as f32,
+                    y: m.y as f32,
+                })
+            } else {
+                None
+            };
+
             animations[current_id] = Some(Animation {
                 frames,
                 next_animations,
                 sleep: animation.sleep,
                 flip_horizontally: state.flip_horizontally,
                 flip_vertically: state.flip_vertically,
+                movement,
             });
             return current_id;
         }
@@ -116,7 +127,7 @@ impl StateMachine {
 
         StateMachine {
             rng: rand::thread_rng(),
-            current_animation: 0,
+            current_animation_id: 0,
             current_frame: 0,
             next_frame: SystemTime::now(),
             frames,
@@ -124,39 +135,43 @@ impl StateMachine {
         }
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self) -> Option<Update> {
+        //only return update if sleep has elapsed
         if self.next_frame.elapsed().is_ok() {
+            let current_animation = self.animations[self.current_animation_id].as_ref().unwrap();
+
+            //update frame counter
             self.current_frame += 1;
-
-            if self.current_frame >= 4 {
+            //does this work?
+            if self.current_frame >= current_animation.frames.len() {
                 self.current_frame = 0;
-                let animations = &self.animations[self.current_animation]
-                    .as_ref()
-                    .unwrap()
-                    .next_animations;
-                self.current_animation = animations[self.rng.gen_range(0..animations.len())];
+                let animations = &current_animation.next_animations;
+                self.current_animation_id = animations[self.rng.gen_range(0..animations.len())];
             }
-            self.next_frame = SystemTime::now().add(Duration::from_millis(
-                self.animations[self.current_animation]
-                    .as_ref()
-                    .unwrap()
-                    .sleep,
-            ));
+
+            //update next_frame to sleep of current animation
+            self.next_frame = SystemTime::now().add(Duration::from_millis(current_animation.sleep));
+
+            //return updated values
+            let mut rect = self.frames[current_animation.frames[self.current_frame]].clone();
+            if current_animation.flip_horizontally {
+                rect.width *= -1.;
+            }
+    
+            if current_animation.flip_vertically {
+                rect.height *= -1.;
+            }
+            return Some(Update {
+                delta_position: current_animation.movement,
+                frame: rect,
+            });
+        } else {
+            return None;
         }
     }
+}
 
-    pub fn get_frame(&self) -> Rectangle {
-        let animation = self.animations[self.current_animation].as_ref().unwrap();
-        let mut rect = self.frames[animation.frames[self.current_frame]].clone();
-
-        if animation.flip_horizontally {
-            rect.width *= -1.;
-        }
-
-        if animation.flip_vertically {
-            rect.height *= -1.;
-        }
-
-        return rect;
-    }
+pub struct Update {
+    pub delta_position: Option<Vector2>,
+    pub frame: Rectangle,
 }

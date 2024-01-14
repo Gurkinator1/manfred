@@ -30,6 +30,17 @@ states:
     idle: { next: [idle, walk_left, walk_right], animation: idling }
 
     walk_left:
-        { next: [walk_left, idle], animation: walking, flip_horizontally: true }
+        {
+            next: [walk_left, idle],
+            animation: walking,
+            flip_horizontally: true,
+            movement: { x: -5, y: 0 },
+        }
 
-    walk_right: { next: [walk_right, idle], animation: walking }
+    # each frame, the movement will be applied to the sprite (in pixels)
+    walk_right:
+        {
+            next: [walk_right, idle],
+            animation: walking,
+            movement: { x: 5, y: 0 },
+        }
