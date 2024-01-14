@@ -22,9 +22,23 @@ fn main() {
 
     rl.set_target_fps(cfg.fps.unwrap_or(30));
 
+    //get screen boundaries
+    let max_x = get_monitor_width(get_current_monitor()) as f32;
+    let max_y = get_monitor_height(get_current_monitor()) as f32;
+
     //set initial position
-    //TODO: config option
-    let mut pos = rl.get_window_position();
+    let mut pos = Vector2 {
+        x: cfg.initial_position.x as f32 - cfg.scale*cfg.sprite.width as f32,
+        y: cfg.initial_position.y as f32 - cfg.scale*cfg.sprite.height as f32,
+    };
+
+    if cfg.initial_position.is_relative {
+        pos += Vector2 {
+            x: max_x,
+            y: max_y
+        };
+    }
+    rl.set_window_position(pos.x as i32, pos.y as i32);
 
     //loading spritesheet
     let img = {
@@ -47,27 +61,33 @@ fn main() {
     let mut source_rec = Rectangle::EMPTY;
     while !rl.window_should_close() {
         if let Some(update) = sm.update() {
-            //update position
+            //ensure pet stays on screen & update position
             if let Some(delta) = update.delta_position {
-                //TODO: ensure sprite stays on screen
                 pos += delta;
+                if pos.x + scale*width as f32 + delta.x > max_x {
+                    pos.x -= delta.x;
+                }
+                if pos.y + scale*height as f32 + delta.y > max_y {
+                    pos.y -= delta.y;
+                }
+                
                 rl.set_window_position(pos.x as i32, pos.y as i32);
             }
 
             //update source rect
             source_rec = update.frame;
         }
-            
-            //draw frame
-            let mut d = rl.begin_drawing(&thread);
-            d.clear_background(Color::BLANK);
-            d.draw_texture_pro(
-                &img,
-                source_rec,
-                Rectangle::new(0., 0., width as f32 * scale, height as f32 * scale),
-                Vector2::new(0., 0.),
-                0.,
-                Color::WHITE,
-            );
+
+        //draw frame
+        let mut d = rl.begin_drawing(&thread);
+        d.clear_background(Color::BLANK);
+        d.draw_texture_pro(
+            &img,
+            source_rec,
+            Rectangle::new(0., 0., width as f32 * scale, height as f32 * scale),
+            Vector2::zero(),
+            0.,
+            Color::WHITE,
+        );
     }
 }

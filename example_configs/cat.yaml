@@ -3,6 +3,13 @@ scale: 6.0 # scaling applied to the texture
 state: idle # beginning state
 fps: 30 #set fps of the update loop. default: 30
 
+initial_position:
+    x: 0
+    y: 0
+    # if relative is true, the screen width and height will be added on top of the position,
+    # so your sprite will end up in the bottom right corner of the screen
+    is_relative: true
+
 # sprite dimensions
 sprite:
     width: 16

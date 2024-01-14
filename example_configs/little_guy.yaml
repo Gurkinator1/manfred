@@ -5,6 +5,11 @@ scale: 2.0 # scaling applied to the texture
 state: sitting # beginning state
 fps: 30 #set fps of the update loop. default: 30
 
+initial_position:
+    x: -200
+    y: 0
+    is_relative: true
+
 # sprite dimensions
 sprite:
     width: 64

@@ -10,10 +10,19 @@ pub struct Config {
     pub texture_path: PathBuf,
     pub sprite: Sprite,
     pub scale: f32,
+    pub initial_position: Positioning,
     pub state: String,
     pub frames: HashMap<String, Frame>,
     pub animations: HashMap<String, Animation>,
     pub states: HashMap<String, State>
+}
+
+#[derive(Deserialize)]
+pub struct Positioning {
+    pub x: i32,
+    pub y: i32,
+    #[serde(default="bool::default")]
+    pub is_relative: bool
 }
 
 #[derive(Deserialize)]
