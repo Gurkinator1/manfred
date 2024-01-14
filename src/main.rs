@@ -44,6 +44,7 @@ fn main() {
     drop(cfg);
 
     //render loop
+    let mut source_rec = Rectangle::EMPTY;
     while !rl.window_should_close() {
         if let Some(update) = sm.update() {
             //update position
@@ -52,18 +53,21 @@ fn main() {
                 pos += delta;
                 rl.set_window_position(pos.x as i32, pos.y as i32);
             }
+
+            //update source rect
+            source_rec = update.frame;
+        }
             
             //draw frame
             let mut d = rl.begin_drawing(&thread);
             d.clear_background(Color::BLANK);
             d.draw_texture_pro(
                 &img,
-                update.frame,
+                source_rec,
                 Rectangle::new(0., 0., width as f32 * scale, height as f32 * scale),
                 Vector2::new(0., 0.),
                 0.,
                 Color::WHITE,
             );
-        }
     }
 }
