@@ -1,0 +1,48 @@
+# thanks to pimfy for this adorable little guy
+
+texture_path: ./little_guy.png # relative or absolute path to texture
+scale: 2.0 # scaling applied to the texture
+state: sitting # beginning state
+fps: 30 #set fps of the update loop. default: 30
+
+# sprite dimensions
+sprite:
+    width: 64
+    height: 64
+
+# frames on spritesheet. x and y are multiples of width and height.
+frames:
+    sit: { x: 0, y: 0 }
+    stand1: { x: 1, y: 0 }
+    stand2: { x: 2, y: 0 }
+    walk1: { x: 3, y: 0 }
+    walk2: { x: 4, y: 0 }
+
+# Animation definition. Each animation is composed out of frames.
+# TODO: movement
+animations:
+    sitting: { frames: [sit], sleep: 3000 }
+    standing: { frames: [stand1, stand2, stand1, stand2], sleep: 2000 }
+    walking: { frames: [walk1, walk2, walk1, walk2], sleep: 200 }
+
+# States for the state machine. Each state has a set of next states.
+states:
+    sitting: { next: [sitting, walk_left, walk_right], animation: sitting }
+
+    standing: { next: [walk_left, walk_right, sitting], animation: standing }
+
+    walk_left:
+        {
+            next: [walk_left, standing],
+            animation: walking,
+            movement: { x: -10, y: 0 },
+        }
+
+    # each frame, the movement will be applied to the sprite (in pixels)
+    walk_right:
+        {
+            next: [walk_right, standing],
+            flip_horizontally: true,
+            animation: walking,
+            movement: { x: 10, y: 0 },
+        }
