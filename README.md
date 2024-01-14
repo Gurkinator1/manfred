@@ -7,11 +7,12 @@ when executed, the binary will try to load the config from a file called `config
 # TODO
 - ~~flipping animation frames~~
 - ~~movement~~
-- stop pet from walking off the screen & initial position
+- ~~stop pet from walking off the screen & initial position~~
 - actions
 - loading zip archives
-- basic CLI / custom path
+- basic UI / custom config path
 - cursor interaction
+- sounds
 
 # Notes
 ## Linux

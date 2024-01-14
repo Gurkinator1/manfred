@@ -27,7 +27,6 @@ frames:
     walk4: { x: 3, y: 1 }
 
 # Animation definition. Each animation is composed out of frames.
-# TODO: movement
 animations:
     walking: { frames: [walk1, walk2, walk3, walk4], sleep: 500 } #specify the amount of time slept between frames
     idling: { frames: [idle1, idle2, idle1, idle3], sleep: 1000 }

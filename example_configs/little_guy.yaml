@@ -24,7 +24,6 @@ frames:
     walk2: { x: 4, y: 0 }
 
 # Animation definition. Each animation is composed out of frames.
-# TODO: movement
 animations:
     sitting: { frames: [sit], sleep: 3000 }
     standing: { frames: [stand1, stand2, stand1, stand2], sleep: 2000 }
