@@ -8,7 +8,7 @@ use std::{
 
 use crate::config::Config;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Animation {
     frames: Vec<usize>,
     sleep: u64,
@@ -23,13 +23,13 @@ pub struct StateMachine {
     current_frame: usize,
     next_frame: SystemTime,
     frames: Vec<Rectangle>,
-    animations: Vec<Animation>,
+    animations: Vec<Option<Animation>>,
 }
 
 impl StateMachine {
     ///generate state machine model from config
     pub fn new(cfg: &Config) -> StateMachine {
-        let mut animations = Vec::with_capacity(cfg.animations.len());
+        let mut animations: Vec<Option<Animation>> = vec![None; cfg.states.len()];
         let mut frames = Vec::new();
 
         //generate source rectangles
@@ -50,7 +50,7 @@ impl StateMachine {
         fn resolve(
             state_name: &String,
             cfg: &Config,
-            animations: &mut Vec<Animation>,
+            animations: &mut Vec<Option<Animation>>,
             frame_table: &HashMap<String, usize>,
             animation_table: &mut HashMap<String, usize>,
             i: &mut usize,
@@ -60,48 +60,49 @@ impl StateMachine {
                 return *a;
             }
 
-            if let Some(state) = cfg.states.get(state_name) {
-                let animation = &cfg.animations.get(&state.animation).unwrap_or_else(|| {
-                    panic!("animation {} does not exist!", state.animation);
-                });
+            //otherwise, try parsing state & animation
+            let state = cfg.states.get(state_name).unwrap_or_else(|| {
+                panic!("State {} does not exist!", state_name);
+            });
+            let animation = &cfg.animations.get(&state.animation).unwrap_or_else(|| {
+                panic!("animation {} does not exist!", state.animation);
+            });
 
-                //mark state as visited
-                animation_table.insert(state_name.clone(), *i);
-                *i += 1;
+            //mark state as visited
+            let current_id = i.clone();
+            animation_table.insert(state_name.clone(), current_id);
+            *i += 1;
 
-                //add frame indexes to animation
-                let mut frames: Vec<usize> = Vec::new();
-                for next in &animation.frames {
-                    frames.push(*frame_table.get(next).unwrap_or_else(|| {
-                        panic!("frame {next} does not exist!");
-                    }))
-                }
-
-                //recursively resolve upcoming states
-                let mut next_animations = Vec::new();
-                for next in &state.next {
-                    next_animations.push(resolve(
-                        next,
-                        cfg,
-                        animations,
-                        frame_table,
-                        animation_table,
-                        i,
-                    ));
-                }
-
-                //push animation to vec & table
-                animations.push(Animation {
-                    frames,
-                    next_animations,
-                    sleep: animation.sleep,
-                    flip_horizontally: state.flip_horizontally,
-                    flip_vertically: state.flip_vertically,
-                });
-                return i.clone() - 1;
-            } else {
-                panic!("State {state_name} does not exist!");
+            //add frame indexes to animation
+            let mut frames: Vec<usize> = Vec::new();
+            for next in &animation.frames {
+                frames.push(*frame_table.get(next).unwrap_or_else(|| {
+                    panic!("frame {next} does not exist!");
+                }))
             }
+
+            //recursively resolve upcoming states
+            let mut next_animations = Vec::new();
+            for next in &state.next {
+                next_animations.push(resolve(
+                    next,
+                    cfg,
+                    animations,
+                    frame_table,
+                    animation_table,
+                    i,
+                ));
+            }
+
+            //push animation to vec & table
+            animations[current_id] = Some(Animation {
+                frames,
+                next_animations,
+                sleep: animation.sleep,
+                flip_horizontally: state.flip_horizontally,
+                flip_vertically: state.flip_vertically,
+            });
+            return current_id;
         }
 
         resolve(
@@ -129,17 +130,23 @@ impl StateMachine {
 
             if self.current_frame >= 4 {
                 self.current_frame = 0;
-                let animations = &self.animations[self.current_animation].next_animations;
+                let animations = &self.animations[self.current_animation]
+                    .as_ref()
+                    .unwrap()
+                    .next_animations;
                 self.current_animation = animations[self.rng.gen_range(0..animations.len())];
             }
             self.next_frame = SystemTime::now().add(Duration::from_millis(
-                self.animations[self.current_animation].sleep,
+                self.animations[self.current_animation]
+                    .as_ref()
+                    .unwrap()
+                    .sleep,
             ));
         }
     }
 
     pub fn get_frame(&self) -> Rectangle {
-        let animation = &self.animations[self.current_animation];
+        let animation = self.animations[self.current_animation].as_ref().unwrap();
         let mut rect = self.frames[animation.frames[self.current_frame]].clone();
 
         if animation.flip_horizontally {
