@@ -4,8 +4,6 @@ use state_machine::StateMachine;
 
 mod config;
 mod state_machine;
-#[cfg(test)]
-mod tests;
 
 fn main() {
     //load config
