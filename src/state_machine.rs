@@ -13,6 +13,8 @@ struct Animation {
     frames: Vec<usize>,
     sleep: u64,
     next_animations: Vec<usize>,
+    flip_horizontally: bool,
+    flip_vertically: bool,
 }
 
 pub struct StateMachine {
@@ -54,7 +56,6 @@ impl StateMachine {
             i: &mut usize,
         ) -> usize {
             //check if state has already been visited.
-            println!("{state_name}");
             if let Some(a) = animation_table.get(state_name) {
                 return *a;
             }
@@ -79,11 +80,14 @@ impl StateMachine {
                 //recursively resolve upcoming states
                 let mut next_animations = Vec::new();
                 for next in &state.next {
-                    if next == state_name {
-                        next_animations.push(i.clone()-1);
-                    } else {
-                        next_animations.push(resolve(next, cfg, animations, frame_table, animation_table, i));
-                    }
+                    next_animations.push(resolve(
+                        next,
+                        cfg,
+                        animations,
+                        frame_table,
+                        animation_table,
+                        i,
+                    ));
                 }
 
                 //push animation to vec & table
@@ -91,8 +95,10 @@ impl StateMachine {
                     frames,
                     next_animations,
                     sleep: animation.sleep,
+                    flip_horizontally: state.flip_horizontally,
+                    flip_vertically: state.flip_vertically,
                 });
-                return i.clone()-1;
+                return i.clone() - 1;
             } else {
                 panic!("State {state_name} does not exist!");
             }
@@ -106,8 +112,6 @@ impl StateMachine {
             &mut animation_table,
             &mut i,
         );
-
-        println!("{:?}", animations);
 
         StateMachine {
             rng: rand::thread_rng(),
@@ -135,6 +139,17 @@ impl StateMachine {
     }
 
     pub fn get_frame(&self) -> Rectangle {
-        self.frames[self.animations[self.current_animation].frames[self.current_frame]]
+        let animation = &self.animations[self.current_animation];
+        let mut rect = self.frames[animation.frames[self.current_frame]].clone();
+
+        if animation.flip_horizontally {
+            rect.width *= -1.;
+        }
+
+        if animation.flip_vertically {
+            rect.height *= -1.;
+        }
+
+        return rect;
     }
 }

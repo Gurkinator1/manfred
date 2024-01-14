@@ -38,6 +38,10 @@ pub struct Animation {
 pub struct State {
     pub next: Vec<String>,
     pub animation: String,
+    #[serde(default="bool::default")]
+    pub flip_horizontally: bool,
+    #[serde(default="bool::default")]
+    pub flip_vertically: bool
 }
 
 //reading config file

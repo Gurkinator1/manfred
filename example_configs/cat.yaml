@@ -20,13 +20,16 @@ frames:
     walk4: { x: 3, y: 1 }
 
 # Animation definition. Each animation is composed out of frames.
-# TODO: flipping, movement
+# TODO: movement
 animations:
     walking: { frames: [walk1, walk2, walk3, walk4], sleep: 500 } #specify the amount of time slept between frames
-    idling: { frames: [idle1, idle2, idle1, idle3], sleep: 500 }
+    idling: { frames: [idle1, idle2, idle1, idle3], sleep: 1000 }
 
 # States for the state machine. Each state has a set of next states.
 states:
     idle: { next: [idle, walk_left, walk_right], animation: idling }
-    walk_left: { next: [walk_left, idle], animation: walking }
+
+    walk_left:
+        { next: [walk_left, idle], animation: walking, flip_horizontally: true }
+
     walk_right: { next: [walk_right, idle], animation: walking }
